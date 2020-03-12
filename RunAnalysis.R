@@ -170,54 +170,76 @@ res_varnames_ic <- function() {
   return(names)
 }
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Get the data from the DB and create frequency tables. #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-# Get the data from the DB and create frequency tables.
 # All data, no regions, PT
 agg_j_all_pt <- dbGetQuery(dbc, query_all("pt_m_tt"))
 colnames(agg_j_all_pt) <- c(res_varnames_id(), res_varnames_common())
 agg_j_all_pt_freq <- mutate(agg_j_all_pt, Total = pct(Total))
+
 # All data, no regions, car
 agg_j_all_car <- dbGetQuery(dbc, query_all("car_m_t"))
 colnames(agg_j_all_car) <- c(res_varnames_id(), res_varnames_common())
 agg_j_all_car_freq <- mutate(agg_j_all_car, Total = pct(Total))
+
 # IC data, no regions, PT
 agg_j_ic_pt <- dbGetQuery(dbc, query_ic("pt_m_tt"))
 colnames(agg_j_ic_pt) <- c(res_varnames_id(), res_varnames_common(), res_varnames_ic())
 agg_j_ic_pt_freq <- data.frame(
   agg_j_ic_pt[1:4], mutate_all(agg_j_ic_pt[5:length(agg_j_ic_pt)], pct))
+
 # IC data, no regions, car
 agg_j_ic_car <- dbGetQuery(dbc, query_ic("car_m_t"))
 colnames(agg_j_ic_car) <- c(res_varnames_id(), res_varnames_common(), res_varnames_ic())
 agg_j_ic_car_freq <- data.frame(
   agg_j_ic_car[1:4], mutate_all(agg_j_ic_car[5:length(agg_j_ic_car)], pct))
+
 # All data with regions, PT
 agg_j_all_reg_pt <- dbGetQuery(dbc, query_allreg("pt_m_tt"))
 colnames(agg_j_all_reg_pt) <- c(res_varnames_id(), res_varnames_reg(), res_varnames_common())
 agg_j_all_reg_pt_freq <- (agg_j_all_reg_pt %>% group_by(RegID) %>% mutate(Total = pct(Total)))
+
 # All data with regions, car
 agg_j_all_reg_car <- dbGetQuery(dbc, query_allreg("car_m_t"))
 colnames(agg_j_all_reg_car) <- c(res_varnames_id(), res_varnames_reg(), res_varnames_common())
 agg_j_all_reg_car_freq <- (agg_j_all_reg_car %>% group_by(RegID) %>% mutate(Total = pct(Total)))
+
 # IC data with regions, PT
 agg_j_ic_reg_pt <- dbGetQuery(dbc, query_icreg("pt_m_tt"))
 colnames(agg_j_ic_reg_pt) <- c(res_varnames_id(),
                                res_varnames_reg(),
                                res_varnames_common(),
                                res_varnames_ic())
+
+# IC data with regions, PT frequencies by TTM year (i.e. data grouped by TTM year)
 agg_j_ic_reg_pt_ttyfreq <- (agg_j_ic_reg_pt %>% group_by(TTM) %>% mutate_at(
   vars(-Measure, -TTM, -JourneyYear, -MunID, -AreaID, -DistID, -RegID, -Count), pct))
+
+# IC data with regions, PT frequencies by industry (i.e. frequencies by row)
 agg_j_ic_reg_pt_icfreq <- data.frame(agg_j_ic_reg_pt[1:8],
                                      shr(agg_j_ic_reg_pt[9:length(agg_j_ic_reg_pt)]))
+
+###NEXT: group_by(Mun) each of the agg_j_ic_reg_pt vars
+###and then multiply them by relevant method_share factor!!!
+
 # IC data with regions, car
 agg_j_ic_reg_car <- dbGetQuery(dbc, query_icreg("car_m_t"))
 colnames(agg_j_ic_reg_car) <- c(res_varnames_id(),
                                res_varnames_reg(),
                                res_varnames_common(),
                                res_varnames_ic())
+
+# IC data with regions, car frequencies by TTM year (i.e. data grouped by TTM year)
 agg_j_ic_reg_car_ttyfreq <- (agg_j_ic_reg_car %>% group_by(TTM) %>% mutate_at(
   vars(-Measure, -TTM, -JourneyYear, -MunID, -AreaID, -DistID, -RegID, -Count), pct))
+
+# IC data with regions, car frequencies by industry (i.e. frequencies by row)
 agg_j_ic_reg_car_icfreq <- data.frame(agg_j_ic_reg_car[1:8],
                                      shr(agg_j_ic_reg_car[9:length(agg_j_ic_reg_car)]))
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # Travel habits in the Helsinki Region 2018: relative share of public
 # transport journeys of all motorised journeys (Brandt et al. 2018: pp. 59-69):
