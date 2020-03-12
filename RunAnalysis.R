@@ -3,7 +3,7 @@ rm(list = ls())
 
 # Define packages required by this script.
 #library(foreign)
-#library(dplyr)
+library(dplyr)
 library(RPostgres)
 #library(GGally)
 library(ggplot2)
@@ -16,10 +16,26 @@ plot.new()
 .pardefault <- par(no.readonly = TRUE)
 dev.off()
 
+# Helper functions.
+
 # Define a more comfy paste():
 p <- function(..., sep='') {
   paste(..., sep=sep)
 }
+
+# Get relative share
+pct <- function(x) {
+  ifelse(x > 0, round(100 * x/sum(x), 1), 0)
+}
+
+# Get relative row share
+shr <- function(df) {
+  df <- round(df / t(df[1]) * 100, 1)
+  df[] <- lapply(df, function(x) replace(x, is.nan(x), 0))
+}
+
+# Divide by 60 (minutes to hours etc.)
+div60 <- function(x) x/60
 
 # Connect to the DB (required params depend about the connection).
 dbc = dbConnect(
@@ -50,111 +66,181 @@ where_clause <- function(measure) {
 }
 
 # Return an all-data SQL query for a given journey type.
+# Convert totals to double due to ggplot2 problems with integer64
+# Also make sure that all region identifiers are imported as text.
 query_all <- function(measure) {
-  query <- p("SELECT * FROM hcr_journeys_aggregated_all ",
+  query <- p("SELECT measure, ttm_year, journey_year, count, total::double precision ",
+             "FROM hcr_journeys_aggregated_all ",
              where_clause(measure), " ORDER BY measure")
   return(query)
 }
 # Return an industry-constrained SQL query for a given journey type.
 query_ic <- function(measure) {
-  query <- p("SELECT * FROM hcr_journeys_aggregated_ic ",
+  query <- p("SELECT measure, ttm_year, journey_year, count, total::double precision, ",
+             "a_alkut, b_kaivos, c_teoll, d_infra1, e_infra2, f_rakent, g_kauppa, h_kulj, ",
+             "i_majrav, j_info, k_raha, l_kiint, m_tekn, n_halpa, o_julk, p_koul, q_terv, ",
+             "r_taide, s_muupa, t_koti, u_kvjarj, x_tuntem FROM hcr_journeys_aggregated_ic ",
              where_clause(measure), " ORDER BY measure")
   return(query)
 }
 
-# Return a region-constrained SQL query for a given journey type.
-query_reg <- function(measure) {
-  query <- p("SELECT * FROM hcr_journeys_aggregated_regions ",
+# Return a region-classified all-data SQL query for a given journey type.
+query_allreg <- function(measure) {
+  query <- p("SELECT measure, ttm_year, journey_year, mun::text, area::text, dist::text, ",
+             "reg_id::text, count, total::double precision ",
+             "FROM hcr_journeys_aggregated_all_byreg ",
              where_clause(measure), " ORDER BY measure")
   return(query)
 }
 
-# Get data from the DB.
+# Return an industry-constrained, region-classified SQL query for a given journey type.
+query_icreg <- function(measure) {
+  query <- p("SELECT measure, ttm_year, journey_year, mun::text, area::text, dist::text, ",
+             "reg_id::text, count, total::double precision, a_alkut, b_kaivos, c_teoll, ",
+             "d_infra1, e_infra2, f_rakent, g_kauppa, h_kulj, i_majrav, j_info, k_raha, ",
+             "l_kiint, m_tekn, n_halpa, o_julk, p_koul, q_terv, r_taide, s_muupa, t_koti, ",
+             "u_kvjarj, x_tuntem FROM hcr_journeys_aggregated_ic_byreg ",
+             where_clause(measure), " ORDER BY measure")
+  return(query)
+}
+
+# Return field names identifying the underlying data
+res_varnames_id <- function() {
+  names = c(
+    "Measure",
+    "TTM",
+    "JourneyYear"
+  )
+  return(names)
+}
+
+# Return field names identifying regions
+res_varnames_reg <- function() {
+  names = c(
+    "MunID",
+    "AreaID",
+    "DistID",
+    "RegID"
+  )
+  return(names)
+}
+
+# Return field names of the common variables
+res_varnames_common <- function() {
+  names = c(
+    "Count",
+    "Total"
+  )
+  return(names)
+}
+
+# Return field names of the IC variables
+res_varnames_ic <- function() {
+  names = c(
+    # Give the columns new names in English.
+    # The classification is based on the 2008 industry classification of Statistics Finland:
+    # https://www.stat.fi/meta/luokitukset/toimiala/001-2008/index_en.html
+    # Referenced 2020-03-04
+    "PriProd",   #Agriculture, forestry and fishing
+    "Mining",    #Mining and quarrying
+    "Manuf",     #Manufacturing
+    "ElAC",      #Electricity, gas, steam and air conditioning supply
+    "WaterEnv",  #Water supply; sewerage, waste management and remediation activities
+    "Construct", #Construction
+    "Trade",     #Wholesale and retail trade; repair of motor vehicles and motorcycles
+    "Logistics", #Transportation and storage
+    "HoReCa",    #Accommodation and food service activities
+    "InfoComm",  #Information and communication
+    "FinIns",    #Financial and insurance activities
+    "RealEst",   #Real estate activities
+    "SpecProf",  #Professional, scientific and technical activities
+    #(speciality professions, e.g. law, architecture, accounting, marketing, research, vets)
+    "AdminSupp", #Administrative and support service activities
+    #(e.g. leasing, office services, employment agencies, security, travel agencies)
+    "PubAdmDef", #Public administration and defence; compulsory social security
+    "Education", #Education
+    "HealthSoc", #Human health and social work activities
+    "ArtsEnt",   #Arts, entertainment and recreation
+    "OtherServ", #Other service activities (e.g. NGOs, appliance repair services, laundry services, spas) 
+    "HomeEmp",   #Activities of households as employers; undifferentiated goods- and services-producing
+    #activities of households for own use
+    "IntOrgs",   #Activities of extraterritorial organisations and bodies
+    "UnknownInd" #Unknown industry
+  )
+  return(names)
+}
+
+
+# Get the data from the DB and create frequency tables.
+# All data, no regions, PT
 agg_j_all_pt <- dbGetQuery(dbc, query_all("pt_m_tt"))
-agg_j_all_varnames <- c(
-  "Measure",
-  "TTM",
-  "JourneyYear",
-  "Total"
-)
-colnames(agg_j_all_pt) <- agg_j_all_varnames
+colnames(agg_j_all_pt) <- c(res_varnames_id(), res_varnames_common())
+agg_j_all_pt_freq <- mutate(agg_j_all_pt, Total = pct(Total))
+# All data, no regions, car
+agg_j_all_car <- dbGetQuery(dbc, query_all("car_m_t"))
+colnames(agg_j_all_car) <- c(res_varnames_id(), res_varnames_common())
+agg_j_all_car_freq <- mutate(agg_j_all_car, Total = pct(Total))
+# IC data, no regions, PT
 agg_j_ic_pt <- dbGetQuery(dbc, query_ic("pt_m_tt"))
-agg_j_ic_varnames <- c(
-  # Give the columns new names in English.
-  # The classification is based on the 2008 industry classification of Statistics Finland:
-  # https://www.stat.fi/meta/luokitukset/toimiala/001-2008/index_en.html
-  # Referenced 2020-03-04
-  "Measure",
-  "TTM",
-  "JourneyYear",
-  "Total",
-  "PriProd",   #Agriculture, forestry and fishing
-  "Mining",    #Mining and quarrying
-  "Manuf",     #Manufacturing
-  "ElAC",      #Electricity, gas, steam and air conditioning supply
-  "WaterEnv",  #Water supply; sewerage, waste management and remediation activities
-  "Construct", #Construction
-  "Trade",     #Wholesale and retail trade; repair of motor vehicles and motorcycles
-  "Logistics", #Transportation and storage
-  "HoReCa",    #Accommodation and food service activities
-  "InfoComm",  #Information and communication
-  "FinIns",    #Financial and insurance activities
-  "RealEst",   #Real estate activities
-  "SpecProf",  #Professional, scientific and technical activities (speciality professions, e.g. law, architecture, accounting, marketing, research, vets)
-  "AdminSupp", #Administrative and support service activities (e.g. leasing, office services, employment agencies, security, travel agencies)
-  "PubAdmDef", #Public administration and defence; compulsory social security
-  "Education", #Education
-  "HealthSoc", #Human health and social work activities
-  "ArtsEnt",   #Arts, entertainment and recreation
-  "OtherServ", #Other service activities (e.g. NGOs, appliance repair services, laundry services, spas) 
-  "HomeEmp",   #Activities of households as employers; undifferentiated goods- and services-producing activities of households for own use
-  "IntOrgs",   #Activities of extraterritorial organisations and bodies
-  "UnknownInd" #Unknown industry
-)
-colnames(agg_j_ic_pt) <- agg_j_ic_varnames
-agg_j_reg_pt <- dbGetQuery(dbc, query_reg("pt_m_tt"))
-agg_j_reg_varnames <- c(
-  "Measure",
-  "TTM",
-  "JourneyYear",
-  "MunID",
-  "AreaID",
-  "DistID",
-  "RegID",
-  "Total"
-)
-colnames(agg_j_reg_pt) <- (agg_j_reg_varnames)
+colnames(agg_j_ic_pt) <- c(res_varnames_id(), res_varnames_common(), res_varnames_ic())
+agg_j_ic_pt_freq <- data.frame(
+  agg_j_ic_pt[1:4], mutate_all(agg_j_ic_pt[5:length(agg_j_ic_pt)], pct))
+# IC data, no regions, car
+agg_j_ic_car <- dbGetQuery(dbc, query_ic("car_m_t"))
+colnames(agg_j_ic_car) <- c(res_varnames_id(), res_varnames_common(), res_varnames_ic())
+agg_j_ic_car_freq <- data.frame(
+  agg_j_ic_car[1:4], mutate_all(agg_j_ic_car[5:length(agg_j_ic_car)], pct))
+# All data with regions, PT
+agg_j_all_reg_pt <- dbGetQuery(dbc, query_allreg("pt_m_tt"))
+colnames(agg_j_all_reg_pt) <- c(res_varnames_id(), res_varnames_reg(), res_varnames_common())
+agg_j_all_reg_pt_freq <- (agg_j_all_reg_pt %>% group_by(RegID) %>% mutate(Total = pct(Total)))
+# All data with regions, car
+agg_j_all_reg_car <- dbGetQuery(dbc, query_allreg("car_m_t"))
+colnames(agg_j_all_reg_car) <- c(res_varnames_id(), res_varnames_reg(), res_varnames_common())
+agg_j_all_reg_car_freq <- (agg_j_all_reg_car %>% group_by(RegID) %>% mutate(Total = pct(Total)))
+# IC data with regions, PT
+agg_j_ic_reg_pt <- dbGetQuery(dbc, query_icreg("pt_m_tt"))
+colnames(agg_j_ic_reg_pt) <- c(res_varnames_id(),
+                               res_varnames_reg(),
+                               res_varnames_common(),
+                               res_varnames_ic())
+agg_j_ic_reg_pt_ttyfreq <- (agg_j_ic_reg_pt %>% group_by(TTM) %>% mutate_at(
+  vars(-Measure, -TTM, -JourneyYear, -MunID, -AreaID, -DistID, -RegID, -Count), pct))
+agg_j_ic_reg_pt_icfreq <- data.frame(agg_j_ic_reg_pt[1:8],
+                                     shr(agg_j_ic_reg_pt[9:length(agg_j_ic_reg_pt)]))
+# IC data with regions, car
+agg_j_ic_reg_car <- dbGetQuery(dbc, query_icreg("car_m_t"))
+colnames(agg_j_ic_reg_car) <- c(res_varnames_id(),
+                               res_varnames_reg(),
+                               res_varnames_common(),
+                               res_varnames_ic())
+agg_j_ic_reg_car_ttyfreq <- (agg_j_ic_reg_car %>% group_by(TTM) %>% mutate_at(
+  vars(-Measure, -TTM, -JourneyYear, -MunID, -AreaID, -DistID, -RegID, -Count), pct))
+agg_j_ic_reg_car_icfreq <- data.frame(agg_j_ic_reg_car[1:8],
+                                     shr(agg_j_ic_reg_car[9:length(agg_j_ic_reg_car)]))
 
 # Travel habits in the Helsinki Region 2018: relative share of public
-# transport journeys of all motorised journeys (Brandt et al. 2018: appendix 4, p. 10):
-method_titles <- list(c("Other", "Walk", "Bike", "PT", "Car"), c("2012", "2018"))
-method_share <- matrix(c(2,26.8,7.2,27.2,36.1,0.4,30.5,9.2,25.4,34.0), nrow = 5, dimnames = method_titles)
+# transport journeys of all motorised journeys (Brandt et al. 2018: pp. 59-69):
+titles <- list(c("Other", "Walk", "Bike", "PT", "Car"),
+               c("2012", "2018"),
+               c("HCR_avg", "Espoo", "Helsinki", "Kauniainen", "Vantaa"))
+method_share <- array(c(
+  "HCR_avg" <- matrix(c(2.7,26.9,7.3,27.1,36.1,0.4,30.5,9.2,25.4,34.0), nrow = 5),
+  "Espoo" <- matrix(c(3.0,22.5,8.3,20.3,45.9,1.2,26.1,9.2,17.8,45.6), nrow = 5),
+  "Helsinki" <- matrix(c(2.7,29.3,6.2,33.7,28.1,0.9,33.8,9.8,30.8,24.8), nrow = 5),
+  "Kauniainen" <- matrix(c(0.3,28.0,9.0,16.6,45.0,0.3,28.0,9.0,16.6,45.0), nrow = 5),
+  "Vantaa" <- matrix(c(2.5,25.4,8.8,17.7,45.5,1.0,26.6,7.3,20.0,45.1), nrow = 5),
+), dim = c(5,2,2), dimnames = titles)
 method_share
 
-# Try to plot something… this plotting method will most likely be redundant.
-# agg_j_plot <- function(df, vars, legend) {
-#   plot <- ggplot(df, aes(x = factor(TTM), group=1))
-#   for(ind in variable.names(df)[vars]) {
-#     plot <- plot + geom_line(aes_string(y=ind, colour=p('"', ind, '"')), size=2)
-#   }
-#   plot <- plot + xlab("Year") + ylab("Aggregated journey time (min)")
-#   plot <- plot + labs(colour = legend)
-#   return(plot)
-# }
-
-agg_j_plot <- function(df, vars, legend = FALSE) {
+# Function to plot non-region classified data.
+plot_not_reg <- function(df, vars, legend = FALSE) {
   # Plot values. If the legend is not false, show it for the vars. Else show directlabels.
-  df_long <- df
-  if(!(names(df[7]) == "RegID")) { #FIXME! Does not work, the num of cols is not known!
-     df_long <- melt(df[vars], id=names(df[2]))
-  }
-  else {
-    1 == 1
-  }
+  df_long <- melt(df[vars], id=names(df[which(colnames(df) == "TTM")]))
   plot <- ggplot(df_long, aes(x=factor(TTM), group=variable, y=value, colour=variable)) +
     geom_line(size=1.3) +
     xlab("Year of the Time Travel Matrix") +
-    ylab("Aggregated time spend by all journeys")
+    ylab("Aggregated travel time spent (hours)")
     if(legend == FALSE) {
       plot <- plot +
       geom_dl(aes(label = variable), method = list(dl.trans(x = x + 0.2), "last.qp", cex = 0.8)) +
@@ -167,5 +253,44 @@ agg_j_plot <- function(df, vars, legend = FALSE) {
     return(plot)
 }
 
-agg_j_plot(agg_j_ic_pt, c(2,7,10:23))
-agg_j_plot(agg_j_all_pt, c(2,4), "Total")
+# Convert minutes to hours and plot total non-region data.
+plot_all_df <- data.frame(agg_j_all_pt[2],lapply(agg_j_all_pt[5], div60))
+plot_not_reg(plot_all_df, c(1:length(plot_all_df)), "Total") # Plot total data.
+# Convert minutes to hours and plot IC non-region-data.
+plot_ic_df <- data.frame(agg_j_ic_pt[2],lapply(agg_j_ic_pt[8], div60),
+                         lapply(agg_j_ic_pt[10:23], div60))
+plot_not_reg(plot_ic_df, c(1:length(plot_ic_df))) # Plot IC data.
+
+# Plot total data classified by region.
+plot_reg <- function(df, vars, variable, value) {
+  # Plot values classified by region.
+  plot <- ggplot(df[vars], aes(x=factor(TTM), group=variable, y=value, colour="red")) +
+  geom_line() +
+  xlab("Year of the Time Travel Matrix") +
+  ylab("Aggregated travel time spent (hours)") +
+  theme(legend.position = "none")
+  return(plot)
+}
+plot_reg_df <- data.frame(agg_j_all_reg_pt[c(2,7)], lapply(agg_j_all_reg_pt[9], div60))
+colnames(plot_reg_df)[which(colnames(plot_reg_df) == "RegID")] <- "variable"
+colnames(plot_reg_df)[which(colnames(plot_reg_df) == "Total")] <- "value"
+# Plot regional data
+plot_reg(plot_reg_df, c(1:length(plot_reg_df)))
+
+# Get regions from the IC data:
+regs <- distinct(agg_j_ic_reg_pt[c("RegID")])
+# Plot each region separately (slow!)
+for(reg in 1:nrow(regs)) {
+  crit <- regs[reg,]
+  newdf <- filter(agg_j_ic_reg_pt, RegID == crit)
+  if(nrow(newdf) < 3) {
+    print(p("Data from the region ", crit, " is not complete; can't plot!"))
+  }
+  else {
+    if(reg < 6) {
+    print(p("Plotting ", crit, "…"))
+    # Convert minutes to hours and plot the data of the region.
+    plot_df <- data.frame(newdf[2],lapply(newdf[10:31], div60))
+    print(plot_not_reg(plot_df, c(1:length(plot_df))), legend = TRUE)
+  }}
+}
