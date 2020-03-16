@@ -10,7 +10,6 @@ library(ggplot2)
 library(randomcoloR)
 library(directlabels)
 library(reshape2)
-library(magrittr)
 
 # Reset graphical parameters and save the defaults.
 plot.new()
@@ -187,44 +186,65 @@ res_varnames_ic <- function() {
 }
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# Get the data from the DB and create frequency tables. #
+# Get the data from the DB, create frequency tables,    #
+# and write the new tables back to the DB               #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # All data, no regions, PT
 agg_j_all_pt <- dbGetQuery(dbc, query_all("pt_m_tt"))
 colnames(agg_j_all_pt) <- c(res_varnames_id(), res_varnames_common())
+dbWriteTable(dbc, "res_agg_j_all_pt", agg_j_all_pt, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 agg_j_all_pt_freq <- mutate(agg_j_all_pt, Total = pct(Total))
+dbWriteTable(dbc, "res_agg_j_all_pt_freq",
+             agg_j_all_pt_freq, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 
 # All data, no regions, car
 agg_j_all_car <- dbGetQuery(dbc, query_all("car_m_t"))
 colnames(agg_j_all_car) <- c(res_varnames_id(), res_varnames_common())
+dbWriteTable(dbc, "res_agg_j_all_car", agg_j_all_car, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 agg_j_all_car_freq <- mutate(agg_j_all_car, Total = pct(Total))
+dbWriteTable(dbc, "res_agg_j_all_car_freq",
+             agg_j_all_car_freq, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 
 # IC data, no regions, PT
 agg_j_ic_pt <- dbGetQuery(dbc, query_ic("pt_m_tt"))
 colnames(agg_j_ic_pt) <- c(res_varnames_id(), res_varnames_common(), res_varnames_ic())
+dbWriteTable(dbc, "res_agg_j_ic_pt", agg_j_ic_pt, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 agg_j_ic_pt_freq <- data.frame(
   agg_j_ic_pt[1:4], mutate_all(agg_j_ic_pt[5:length(agg_j_ic_pt)], pct))
+dbWriteTable(dbc, "res_agg_j_ic_pt_freq",
+             agg_j_ic_pt_freq, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 
 # IC data, no regions, car
 agg_j_ic_car <- dbGetQuery(dbc, query_ic("car_m_t"))
 colnames(agg_j_ic_car) <- c(res_varnames_id(), res_varnames_common(), res_varnames_ic())
+dbWriteTable(dbc, "res_agg_j_ic_car", agg_j_ic_car, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 agg_j_ic_car_freq <- data.frame(
   agg_j_ic_car[1:4], mutate_all(agg_j_ic_car[5:length(agg_j_ic_car)], pct))
+dbWriteTable(dbc, "res_agg_j_ic_car_freq",
+             agg_j_ic_car_freq, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 
 # All data with regions, PT
 agg_j_all_reg_pt <- dbGetQuery(dbc, query_allreg("pt_m_tt"))
 colnames(agg_j_all_reg_pt) <- c(res_varnames_id(), res_varnames_reg(), res_varnames_common())
+dbWriteTable(dbc, "res_agg_j_all_reg_pt",
+             agg_j_all_reg_pt, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 
 # All data with regions, PT frequencies by TTM year (i.e. data grouped by TTM year)
 agg_j_all_reg_pt_ttyfreq <- (agg_j_all_reg_pt %>% group_by(TTM) %>% mutate(Total = pct(Total)))
+dbWriteTable(dbc, "res_agg_j_all_reg_pt_ttyfreq",
+             agg_j_all_reg_pt_ttyfreq, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 
 # All data with regions, car
 agg_j_all_reg_car <- dbGetQuery(dbc, query_allreg("car_m_t"))
 colnames(agg_j_all_reg_car) <- c(res_varnames_id(), res_varnames_reg(), res_varnames_common())
+dbWriteTable(dbc, "res_agg_j_all_reg_car",
+             agg_j_all_reg_car, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 
 # All data with regions, car frequencies by TTM year (i.e. data grouped by TTM year)
 agg_j_all_reg_car_ttyfreq <- (agg_j_all_reg_car %>% group_by(TTM) %>% mutate(Total = pct(Total)))
+dbWriteTable(dbc, "res_agg_j_all_reg_car_ttyfreq",
+             agg_j_all_reg_car_ttyfreq, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 
 # IC data with regions, PT
 agg_j_ic_reg_pt <- dbGetQuery(dbc, query_icreg("pt_m_tt"))
@@ -232,14 +252,20 @@ colnames(agg_j_ic_reg_pt) <- c(res_varnames_id(),
                                res_varnames_reg(),
                                res_varnames_common(),
                                res_varnames_ic())
+dbWriteTable(dbc, "res_agg_j_ic_reg_pt",
+             agg_j_ic_reg_pt, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 
 # IC data with regions, PT frequencies by TTM year (i.e. data grouped by TTM year)
 agg_j_ic_reg_pt_ttyfreq <- (agg_j_ic_reg_pt %>% group_by(TTM) %>% mutate_at(
   vars(-Measure, -TTM, -JourneyYear, -MunID, -AreaID, -DistID, -RegID, -Count), pct))
+dbWriteTable(dbc, "res_agg_j_ic_reg_pt_ttyfreq",
+             agg_j_ic_reg_pt_ttyfreq, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 
 # IC data with regions, PT frequencies by industry (i.e. frequencies by row)
 agg_j_ic_reg_pt_icfreq <- data.frame(agg_j_ic_reg_pt[1:8],
                                      shr(agg_j_ic_reg_pt[9:length(agg_j_ic_reg_pt)]))
+dbWriteTable(dbc, "res_agg_j_ic_reg_pt_icfreq",
+             agg_j_ic_reg_pt_icfreq, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 
 # IC data with regions, car
 agg_j_ic_reg_car <- dbGetQuery(dbc, query_icreg("car_m_t"))
@@ -247,14 +273,20 @@ colnames(agg_j_ic_reg_car) <- c(res_varnames_id(),
                                res_varnames_reg(),
                                res_varnames_common(),
                                res_varnames_ic())
+dbWriteTable(dbc, "res_agg_j_ic_reg_car",
+             agg_j_ic_reg_car, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 
 # IC data with regions, car frequencies by TTM year (i.e. data grouped by TTM year)
 agg_j_ic_reg_car_ttyfreq <- (agg_j_ic_reg_car %>% group_by(TTM) %>% mutate_at(
   vars(-Measure, -TTM, -JourneyYear, -MunID, -AreaID, -DistID, -RegID, -Count), pct))
+dbWriteTable(dbc, "res_agg_j_ic_reg_car_ttyfreq",
+             agg_j_ic_reg_car_ttyfreq, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 
 # IC data with regions, car frequencies by industry (i.e. frequencies by row)
 agg_j_ic_reg_car_icfreq <- data.frame(agg_j_ic_reg_car[1:8],
                                      shr(agg_j_ic_reg_car[9:length(agg_j_ic_reg_car)]))
+dbWriteTable(dbc, "res_agg_j_ic_reg_car_icfreq",
+             agg_j_ic_reg_car_icfreq, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 
 # Filter the variable values by MunID and multiple the values of each municipality
 # with the relevant travel method share factor. 
@@ -278,15 +310,49 @@ calc_munshare <- function(df, method_code) {
 
 # Multiply all PT times and counts with municipal travel method factors.
 agg_j_all_reg_pt_mun <- calc_munshare(agg_j_all_reg_pt, "PT")
+dbWriteTable(dbc, "res_agg_j_all_reg_pt_mun",
+             agg_j_all_reg_pt_mun, row.names=FALSE, overwrite=TRUE, copy=TRUE)
+
+# All data with regions, PT frequencies by TTM year (i.e. data grouped by TTM year)
+# data multiplied with municipal travel method factors
+agg_j_all_reg_pt_ttyfreq_mun <- (agg_j_all_reg_pt_mun %>% group_by(TTM) %>% mutate(Total = pct(Total)))
+dbWriteTable(dbc, "res_agg_j_all_reg_pt_ttyfreq_mun",
+             agg_j_all_reg_pt_ttyfreq_mun, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 
 # Multiply IC PT times and counts with municipal travel method factors.
 agg_j_ic_reg_pt_mun <- calc_munshare(agg_j_ic_reg_pt, "PT")
+dbWriteTable(dbc, "res_agg_j_ic_reg_pt_mun",
+             agg_j_ic_reg_pt_mun, row.names=FALSE, overwrite=TRUE, copy=TRUE)
+
+# IC data with regions, PT frequencies by industry (i.e. frequencies by row),
+# data multiplied with municipal travel method factors
+agg_j_ic_reg_pt_icfreq_mun <- data.frame(agg_j_ic_reg_pt_mun[1:8],
+                                     shr(agg_j_ic_reg_pt_mun[9:length(agg_j_ic_reg_pt_mun)]))
+dbWriteTable(dbc, "res_agg_j_ic_reg_pt_icfreq_mun",
+             agg_j_ic_reg_pt_icfreq_mun, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 
 # Multiply all car times and counts with municipal travel method factors.
 agg_j_all_reg_car_mun <- calc_munshare(agg_j_all_reg_car, "Car")
+dbWriteTable(dbc, "res_agg_j_all_reg_car_mun",
+             agg_j_all_reg_car_mun, row.names=FALSE, overwrite=TRUE, copy=TRUE)
+
+# All data with regions, car frequencies by TTM year (i.e. data grouped by TTM year)
+# data multiplied with municipal travel method factors
+agg_j_all_reg_car_ttyfreq_mun <- (agg_j_all_reg_car_mun %>% group_by(TTM) %>% mutate(Total = pct(Total)))
+dbWriteTable(dbc, "res_agg_j_all_reg_car_ttyfreq_mun",
+             agg_j_all_reg_car_ttyfreq_mun, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 
 # Multiply IC car times and counts with municipal travel method factors.
 agg_j_ic_reg_car_mun <- calc_munshare(agg_j_ic_reg_car, "Car")
+dbWriteTable(dbc, "res_agg_j_ic_reg_car_mun",
+             agg_j_ic_reg_car_mun, row.names=FALSE, overwrite=TRUE, copy=TRUE)
+
+# IC data with regions, car frequencies by industry (i.e. frequencies by row),
+# data multiplied with municipal travel method factors
+agg_j_ic_reg_car_icfreq_mun <- data.frame(agg_j_ic_reg_car_mun[1:8],
+                                         shr(agg_j_ic_reg_car_mun[9:length(agg_j_ic_reg_car_mun)]))
+dbWriteTable(dbc, "res_agg_j_ic_reg_car_icfreq_mun",
+             agg_j_ic_reg_car_icfreq_mun, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
