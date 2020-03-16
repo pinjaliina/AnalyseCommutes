@@ -10,6 +10,7 @@ library(ggplot2)
 library(randomcoloR)
 library(directlabels)
 library(reshape2)
+library(magrittr)
 
 # Reset graphical parameters and save the defaults.
 plot.new()
@@ -36,6 +37,21 @@ shr <- function(df) {
 
 # Divide by 60 (minutes to hours etc.)
 div60 <- function(x) x/60
+
+# Travel habits in the Helsinki Region 2018: relative share of public
+# transport journeys of all motorised journeys (Brandt et al. 2018: pp. 59-69):
+metshr_title_methods <- c("Other", "Walk", "Bike", "PT", "Car")
+metshr_title_years <- c("2012", "2018")
+metshr_title_muns <- c("000", "049", "091", "235", "092")
+metshr_titles <- list(metshr_title_methods, metshr_title_years, metshr_title_muns)
+method_share <- array(c(
+  "HCR_avg (000)" <- matrix(c(2.7,26.9,7.3,27.1,36.1,0.4,30.5,9.2,25.4,34.0), nrow = 5),
+  "Espoo (049)" <- matrix(c(3.0,22.5,8.3,20.3,45.9,1.2,26.1,9.2,17.8,45.6), nrow = 5),
+  "Helsinki (091)" <- matrix(c(2.7,29.3,6.2,33.7,28.1,0.9,33.8,9.8,30.8,24.8), nrow = 5),
+  "Kauniainen (235)" <- matrix(c(0.3,28.0,9.0,16.6,45.0,0.3,28.0,9.0,16.6,45.0), nrow = 5),
+  "Vantaa (092)" <- matrix(c(2.5,25.4,8.8,17.7,45.5,1.0,26.6,7.3,20.0,45.1), nrow = 5)
+), dim = c(5,2,5), dimnames = metshr_titles)
+method_share
 
 # Connect to the DB (required params depend about the connection).
 dbc = dbConnect(
@@ -199,12 +215,16 @@ agg_j_ic_car_freq <- data.frame(
 # All data with regions, PT
 agg_j_all_reg_pt <- dbGetQuery(dbc, query_allreg("pt_m_tt"))
 colnames(agg_j_all_reg_pt) <- c(res_varnames_id(), res_varnames_reg(), res_varnames_common())
-agg_j_all_reg_pt_freq <- (agg_j_all_reg_pt %>% group_by(RegID) %>% mutate(Total = pct(Total)))
+
+# All data with regions, PT frequencies by TTM year (i.e. data grouped by TTM year)
+agg_j_all_reg_pt_ttyfreq <- (agg_j_all_reg_pt %>% group_by(TTM) %>% mutate(Total = pct(Total)))
 
 # All data with regions, car
 agg_j_all_reg_car <- dbGetQuery(dbc, query_allreg("car_m_t"))
 colnames(agg_j_all_reg_car) <- c(res_varnames_id(), res_varnames_reg(), res_varnames_common())
-agg_j_all_reg_car_freq <- (agg_j_all_reg_car %>% group_by(RegID) %>% mutate(Total = pct(Total)))
+
+# All data with regions, car frequencies by TTM year (i.e. data grouped by TTM year)
+agg_j_all_reg_car_ttyfreq <- (agg_j_all_reg_car %>% group_by(TTM) %>% mutate(Total = pct(Total)))
 
 # IC data with regions, PT
 agg_j_ic_reg_pt <- dbGetQuery(dbc, query_icreg("pt_m_tt"))
@@ -221,9 +241,6 @@ agg_j_ic_reg_pt_ttyfreq <- (agg_j_ic_reg_pt %>% group_by(TTM) %>% mutate_at(
 agg_j_ic_reg_pt_icfreq <- data.frame(agg_j_ic_reg_pt[1:8],
                                      shr(agg_j_ic_reg_pt[9:length(agg_j_ic_reg_pt)]))
 
-###NEXT: group_by(Mun) each of the agg_j_ic_reg_pt vars
-###and then multiply them by relevant method_share factor!!!
-
 # IC data with regions, car
 agg_j_ic_reg_car <- dbGetQuery(dbc, query_icreg("car_m_t"))
 colnames(agg_j_ic_reg_car) <- c(res_varnames_id(),
@@ -239,21 +256,39 @@ agg_j_ic_reg_car_ttyfreq <- (agg_j_ic_reg_car %>% group_by(TTM) %>% mutate_at(
 agg_j_ic_reg_car_icfreq <- data.frame(agg_j_ic_reg_car[1:8],
                                      shr(agg_j_ic_reg_car[9:length(agg_j_ic_reg_car)]))
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Filter the variable values by MunID and multiple the values of each municipality
+# with the relevant travel method share factor. 
+calc_munshare <- function(df, method_code) {
+  ret_df <- df[0,]
+  for(mun in metshr_title_muns[-1]) {
+    for(y in ttm_y) {
+      multiplier = 0
+      if(y == 2018) multiplier = method_share[method_code,"2018",mun]
+      else multiplier = method_share[method_code,"2012",mun]
+      res_df <- df %>%
+        filter(MunID == mun, TTM == y) %>% mutate_at(vars(
+          -Measure, -TTM, -JourneyYear, -MunID, -AreaID, -DistID, -RegID, -Count),
+          function(x) round(x * multiplier / 100, 1))
+      res_df %<>% mutate(Count = round(Count * multiplier / 100 ,0))
+      ret_df <- rbind(ret_df, res_df)
+    }
+  }
+  return(ret_df)
+}
 
-# Travel habits in the Helsinki Region 2018: relative share of public
-# transport journeys of all motorised journeys (Brandt et al. 2018: pp. 59-69):
-titles <- list(c("Other", "Walk", "Bike", "PT", "Car"),
-               c("2012", "2018"),
-               c("HCR_avg", "Espoo", "Helsinki", "Kauniainen", "Vantaa"))
-method_share <- array(c(
-  "HCR_avg" <- matrix(c(2.7,26.9,7.3,27.1,36.1,0.4,30.5,9.2,25.4,34.0), nrow = 5),
-  "Espoo" <- matrix(c(3.0,22.5,8.3,20.3,45.9,1.2,26.1,9.2,17.8,45.6), nrow = 5),
-  "Helsinki" <- matrix(c(2.7,29.3,6.2,33.7,28.1,0.9,33.8,9.8,30.8,24.8), nrow = 5),
-  "Kauniainen" <- matrix(c(0.3,28.0,9.0,16.6,45.0,0.3,28.0,9.0,16.6,45.0), nrow = 5),
-  "Vantaa" <- matrix(c(2.5,25.4,8.8,17.7,45.5,1.0,26.6,7.3,20.0,45.1), nrow = 5),
-), dim = c(5,2,2), dimnames = titles)
-method_share
+# Multiply all PT times and counts with municipal travel method factors.
+agg_j_all_reg_pt_mun <- calc_munshare(agg_j_all_reg_pt, "PT")
+
+# Multiply IC PT times and counts with municipal travel method factors.
+agg_j_ic_reg_pt_mun <- calc_munshare(agg_j_ic_reg_pt, "PT")
+
+# Multiply all car times and counts with municipal travel method factors.
+agg_j_all_reg_car_mun <- calc_munshare(agg_j_all_reg_car, "Car")
+
+# Multiply IC car times and counts with municipal travel method factors.
+agg_j_ic_reg_car_mun <- calc_munshare(agg_j_ic_reg_car, "Car")
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # Function to plot non-region classified data.
 plot_not_reg <- function(df, vars, legend = FALSE) {
