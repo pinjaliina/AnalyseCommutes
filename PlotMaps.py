@@ -195,8 +195,9 @@ for modeid, mode in modes.items():
             if(i<=len(series)-2):
                 q = query.format(item, series[i+1])
                 plot = get_plot(
-                    q, pg, mode + ': Change of the share of the total \
-                        time: ' + desc, item, series[i+1])
+                    q, pg,
+                    mode + ': Change of the share of the total time: ' + desc,
+                    item, series[i+1])
                 plots.append(plot[0])
                 plot_stats.append([field, str(item) + '–' + str(series[i+1]),
                                    plot[1], plot[2]])
