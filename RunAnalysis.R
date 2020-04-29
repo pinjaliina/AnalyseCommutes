@@ -190,26 +190,32 @@ res_varnames_ic <- function() {
 # and write the new tables back to the DB               #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-# All data, no regions, PT
+# All data, no regions, PT, summary table
 agg_j_all_pt <- dbGetQuery(dbc, query_all("pt_m_tt"))
 colnames(agg_j_all_pt) <- c(res_varnames_id(), res_varnames_common())
 dbWriteTable(dbc, "res_agg_j_all_pt", agg_j_all_pt, row.names=FALSE, overwrite=TRUE, copy=TRUE)
+
+# All data, no regions, PT, relative TTM share (makes little sense)
 agg_j_all_pt_freq <- mutate(agg_j_all_pt, Total = pct(Total))
 dbWriteTable(dbc, "res_agg_j_all_pt_freq",
              agg_j_all_pt_freq, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 
-# All data, no regions, car
+# All data, no regions, car, summary table
 agg_j_all_car <- dbGetQuery(dbc, query_all("car_m_t"))
 colnames(agg_j_all_car) <- c(res_varnames_id(), res_varnames_common())
 dbWriteTable(dbc, "res_agg_j_all_car", agg_j_all_car, row.names=FALSE, overwrite=TRUE, copy=TRUE)
+
+# All data, no regions, car, relative TTM share (makes little sense)
 agg_j_all_car_freq <- mutate(agg_j_all_car, Total = pct(Total))
 dbWriteTable(dbc, "res_agg_j_all_car_freq",
              agg_j_all_car_freq, row.names=FALSE, overwrite=TRUE, copy=TRUE)
 
-# IC data, no regions, PT
+# IC data, no regions, PT, summary table
 agg_j_ic_pt <- dbGetQuery(dbc, query_ic("pt_m_tt"))
 colnames(agg_j_ic_pt) <- c(res_varnames_id(), res_varnames_common(), res_varnames_ic())
 dbWriteTable(dbc, "res_agg_j_ic_pt", agg_j_ic_pt, row.names=FALSE, overwrite=TRUE, copy=TRUE)
+
+# IC data, no regions, PT, relative TTM share (makes little sense)
 agg_j_ic_pt_freq <- data.frame(
   agg_j_ic_pt[1:4], mutate_all(agg_j_ic_pt[5:length(agg_j_ic_pt)], pct))
 dbWriteTable(dbc, "res_agg_j_ic_pt_freq",
@@ -219,6 +225,8 @@ dbWriteTable(dbc, "res_agg_j_ic_pt_freq",
 agg_j_ic_car <- dbGetQuery(dbc, query_ic("car_m_t"))
 colnames(agg_j_ic_car) <- c(res_varnames_id(), res_varnames_common(), res_varnames_ic())
 dbWriteTable(dbc, "res_agg_j_ic_car", agg_j_ic_car, row.names=FALSE, overwrite=TRUE, copy=TRUE)
+
+# IC data, no regions, car, relative TTM share (makes little sense)
 agg_j_ic_car_freq <- data.frame(
   agg_j_ic_car[1:4], mutate_all(agg_j_ic_car[5:length(agg_j_ic_car)], pct))
 dbWriteTable(dbc, "res_agg_j_ic_car_freq",
