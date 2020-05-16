@@ -29,11 +29,7 @@ p <- function(..., sep='') {
 # Connect to the DB (required params depend about the connection).
 dbc = dbConnect(
   Postgres(), 
-  user = 'pinjaliina',
-  dbname = 'tt',
-  host = 'vm0448.kaj.pouta.csc.fi',
-  port = 5432,
-  sslmode = 'verify-full'
+  dbname = 'tt'
 )
 
 # List DB tables.

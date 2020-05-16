@@ -41,9 +41,6 @@ def get_db_conn():
     """
     
     conn_params = {
-         'host': 'vm0448.kaj.pouta.csc.fi', # Cut off
-         'user': 'pinjaliina',              # these three rows
-         'sslmode': 'verify-full',          # before commit!
          'dbname': 'tt'
         }
     
