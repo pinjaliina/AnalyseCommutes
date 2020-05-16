@@ -10,6 +10,7 @@ library(ggplot2)
 library(randomcoloR)
 library(directlabels)
 library(reshape2)
+library(magrittr)
 
 # Reset graphical parameters and save the defaults.
 plot.new()
