@@ -168,8 +168,9 @@ legend('topright', c(
   'PT, 2015–2018'),
   fill = c('firebrick1','blue','darkseagreen3','gold'))
 
+# Plot kernel densities of unweighted changes in relative frequencies
 plot(density(comp_comp_PT$FChange_1),
-     main='Kernel densities, RF changes', col='darkseagreen3')
+     main='Kernel densities, changes in unweighted relative frequencies', col='darkseagreen3')
 lines(density(comp_comp_PT$FChange_2), col='gold')
 lines(density(comp_comp_Car$FChange_1), col='firebrick1')
 lines(density(comp_comp_Car$FChange_2), col='blue')
@@ -211,7 +212,7 @@ abline(0,1)
 
 "Plot: car, t-test, 2013-2015"
 ggttest(tt_car_chg_all_20132015) +
-  labs(title="car, 2013 vs 2015, two-sided t-test",
+  labs(title="Car, 2013 vs 2015, two-sided t-test",
        subtitle = p('p-value: ', round(tt_car_chg_all_20132015$p.value, 4)))
 qqplot(car_chg_all_20132015$T1, car_chg_all_20132015$T2,
        main = "Q–Q plot, car 2013 vs 2015", xlab="2013", ylab="2015")
@@ -219,7 +220,7 @@ abline(0,1)
 
 "Plot: car, t-test, 2015-2018"
 ggttest(tt_car_chg_all_20132015) +
-  labs(title="car, 2015 vs 2018, two-sided t-test",
+  labs(title="Car, 2015 vs 2018, two-sided t-test",
        subtitle = p('p-value: ', round(tt_car_chg_all_20152018$p.value, 4)))
 qqplot(car_chg_all_20152018$T1, car_chg_all_20152018$T2,
        main = "Q–Q plot, car 2015 vs 2018", xlab="2015", ylab="2018")
