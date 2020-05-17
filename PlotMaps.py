@@ -93,7 +93,7 @@ def get_plot(query, conn, desc, first, last):
         't-pval_abschg': None,
         't-df_abschg': None}
     # None of this makes sense unless both variables have data:
-    if not ((df['T1'] == 0).all() or (df['T2'] == 0).all()):           
+    if not ((df['T1'] == 0).all() or (df['T2'] == 0).all()):
         # Null hypothesis for Levene test: both inputs have equal variances.
         statistics['levenestat_abschg'], \
             statistics['levenepval_abschg'] = stats.levene(df['T1'], df['T2'])
@@ -223,7 +223,6 @@ plot_stats_ind = list()
 for modeid, mode in modes.items():
     plots = list()
     
-    
     for field, desc in industry_list().items():
         query=(
             'SELECT * FROM (SELECT '
@@ -238,14 +237,14 @@ for modeid, mode in modes.items():
                 'abs1."' + field +'" AS "T1", '
                 'CASE WHEN abs1."' + field +'" <> 0 THEN '
                 'ROUND(CAST('
-                	'abs1."' + field +'"/(abs1."' + field +\
+                    'abs1."' + field +'"/(abs1."' + field +\
                     '"/abs1."Total")/abs1."Count" AS NUMERIC), 2) '
                 'ELSE 0 END AS "M1", '
                 'rf2."Count" AS "C2",rf2."' + field + '" AS "RF_T2", '
                 'abs2."' + field +'" AS "T2", '
                 'CASE WHEN abs2."' + field +'" <> 0 THEN '
                 'ROUND(CAST('
-                	'abs2."' + field +'"/(abs2."' + field + \
+                    'abs2."' + field +'"/(abs2."' + field + \
                     '"/abs2."Total")/abs2."Count" AS NUMERIC), 2) '
                 'ELSE 0 END AS "M2", '
                 'ROUND(CAST(rf2."' + field + '"-rf1."' + field + \
