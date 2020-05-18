@@ -15,10 +15,8 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 # Import necessary modules
 import pandas
 import geopandas as gpd   # geopandas is usually shortened as gpd
-# from shapely.geometry import Point
 import mapclassify as mc
 from fiona.crs import from_epsg
-# from bokeh.models.glyphs import Circle
 from bokeh.plotting import figure
 from bokeh.layouts import gridplot
 from bokeh.io import save
@@ -27,9 +25,10 @@ from bokeh.models import \
     GeoJSONDataSource, LinearColorMapper, HoverTool, Legend, LegendItem
 import bokeh.palettes as palettes
 import psycopg2
-from os import path
+from os import path, mkdir
 import tempfile
 from scipy import stats
+import matplotlib.pyplot as plt
 
 def get_db_conn():
     """Define DB connection params.
@@ -88,18 +87,26 @@ def get_plot(query, conn, desc, first, last):
         'levenestat_abschg': None,
         'levenepval_abschg': None,
         'shapirostat_abschg': None,
-        'spapiropval_abschg': None,
+        'shapiropval_abschg': None,
         't-stat_abschg': None,
         't-pval_abschg': None,
         't-df_abschg': None}
     # None of this makes sense unless both variables have data:
+    reshist = None
+    resqq = None
     if not ((df['T1'] == 0).all() or (df['T2'] == 0).all()):
         # Null hypothesis for Levene test: both inputs have equal variances.
         statistics['levenestat_abschg'], \
             statistics['levenepval_abschg'] = stats.levene(df['T1'], df['T2'])
         # Null hypothesis for Shapiro-Wilk: normal distribution of residuals.
+        diff = df['T2']-df['T1']
         statistics['shapirostat_abschg'], \
-            statistics['shapiropval_abschg'] = stats.shapiro(df['T1']-df['T2'])
+            statistics['shapiropval_abschg'] = stats.shapiro(diff)
+        reshist = diff.plot(kind = 'hist', title = 'Residuals: ' + desc, figure=plt.figure())
+        plt.figure()
+        stats.probplot(diff, plot=plt)
+        plt.title('Residuals: ' + desc)
+        resqq = plt.gca()
         statistics['t-stat_abschg'], \
             statistics['t-pval_abschg'] = stats.ttest_ind(df['T1'], df['T2'])
         statistics['t-df_abschg'] = df['T1'].count() + df['T2'].count() - 2
@@ -184,7 +191,7 @@ def get_plot(query, conn, desc, first, last):
 
     plot.add_tools(hoverinfo)
     
-    return plot, statistics
+    return plot, statistics, reshist, resqq
 
 def industry_list():
     return {
@@ -219,6 +226,9 @@ modes = {'car': 'Car', 'pt': 'PT'}
 series = ('2013', '2015', '2018')
 
 plot_stats_ind = list()
+
+reshists = dict()
+resqqs = dict()
 
 for modeid, mode in modes.items():
     plots = list()
@@ -270,18 +280,38 @@ for modeid, mode in modes.items():
                     mode + ': Change of the share of the total time: ' + desc,
                     item, series[i+1])
                 plots.append(plot[0])
+                reshists[mode + '_' + field] = plot[2]
+                resqqs[mode + '_' + field] = plot[3]
                 statsdic = {'mode': mode,
                             'indcode': field,
                             'ind_desc': desc,
                             'period': str(item) + '–' + str(series[i+1])}
                 statsdic.update(plot[1])
                 plot_stats_ind.append(statsdic)
-                         
+
     # Save the map.
     outfp = path.join(path.dirname(path.realpath(__file__)),
                       'docs/icfreq_reg_maps_' + modeid + '.html')
     save(gridplot(plots, ncols=2), outfp, title='IC frequency plots, ' + mode)
-    
+
+# Save residual plots
+dirpath = path.join(tempfile.gettempdir(), 'histplots')
+if not path.exists(dirpath):
+    mkdir(dirpath)
+for key, plot in reshists.items():
+    outfp = path.join(dirpath, key + '_residuals.png')
+    if(plot):
+        plot.get_figure().savefig(outfp)
+print('Residual histograms saved to directory "' + dirpath + '".')
+dirpath = path.join(tempfile.gettempdir(), 'qqplots')
+if not path.exists(dirpath):
+    mkdir(dirpath)
+for key, plot in resqqs.items():
+    outfp = path.join(dirpath, key + '_residuals.png')
+    if(plot):
+        plot.get_figure().savefig(outfp)
+print('Residual QQ-plots saved to directory "' + dirpath + '".')
+
 # Write all statistics to an xlsx file.
 # The file will be located in a temporary directory, which on some platforms
 # is under a funny path. But the script will print the full path to the file.
