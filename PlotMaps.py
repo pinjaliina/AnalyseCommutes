@@ -27,7 +27,8 @@ from bokeh.models import \
     HoverTool, \
     Legend, \
     LegendItem, \
-    LabelSet
+    LabelSet, \
+    Label
 import bokeh.palettes as palettes
 import psycopg2
 from os import path, mkdir
@@ -190,6 +191,38 @@ def get_plot(query, conn, desc, first, last):
                       source=labsource,
                       level='glyph')
     plot.add_layout(labels)
+
+    # Cite map sources
+    citation = Label(
+        x=3,
+        y=0,
+        x_units='screen',
+        y_units='screen',
+        text='Map data: Statistics Finland, UH / Accessibility Research Group',
+        render_mode='css',
+        text_font_size='7.25pt',
+        text_color='black',
+        border_line_color='white',
+        border_line_alpha=0.1,
+        border_line_width=1.0,
+        background_fill_color='white',
+        background_fill_alpha=0.4)
+    plot.add_layout(citation)
+    bkg_map_head = Label(
+        x=298,
+        y=0,
+        x_units='screen',
+        y_units='screen',
+        text='Background map: ',
+        render_mode='css',
+        text_font_size='7.25pt',
+        text_color='black',
+        border_line_color='white',
+        border_line_alpha=0.1,
+        border_line_width=1.0,
+        background_fill_color='white',
+        background_fill_alpha=0.4)
+    plot.add_layout(bkg_map_head)
 
     # Create a legend. Of course it does NOT work automatically, see
     # https://github.com/bokeh/bokeh/issues/9398, but MUST still be defined
