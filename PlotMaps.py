@@ -22,13 +22,20 @@ from bokeh.layouts import gridplot
 from bokeh.io import save
 from bokeh.tile_providers import get_provider, Vendors
 from bokeh.models import \
-    GeoJSONDataSource, LinearColorMapper, HoverTool, Legend, LegendItem
+    GeoJSONDataSource, \
+    LinearColorMapper, \
+    HoverTool, \
+    Legend, \
+    LegendItem, \
+    LabelSet
 import bokeh.palettes as palettes
 import psycopg2
 from os import path, mkdir
-import tempfile
 from scipy import stats
 import matplotlib.pyplot as plt
+# Silence max_open_warnings of matplotlib
+plt.rcParams.update({'figure.max_open_warning': 0})
+from textwrap import wrap
 
 def get_db_conn():
     """Define DB connection params.
@@ -59,6 +66,10 @@ def get_plot(query, conn, desc, first, last):
     # Get one of the results tables
     df = gpd.GeoDataFrame.from_postgis(
         query, conn, geom_col='geom',
+        crs=from_epsg(3067)).to_crs("EPSG:3857")
+    # A point source for labels. df.set_geometry() fails, but this works!
+    df_centroids = gpd.GeoDataFrame.from_postgis(
+        query, conn, geom_col='geom_centroid',
         crs=from_epsg(3067)).to_crs("EPSG:3857")
     
     # Classify data (manual classes based on outputs of previous runs!)
@@ -102,10 +113,13 @@ def get_plot(query, conn, desc, first, last):
         diff = df['T2']-df['T1']
         statistics['shapirostat_abschg'], \
             statistics['shapiropval_abschg'] = stats.shapiro(diff)
-        reshist = diff.plot(kind = 'hist', title = 'Residuals: ' + desc, figure=plt.figure())
+        plot_title = 'Residuals for ' + desc + ', ' + first + '–' + last
+        reshist = diff.plot(kind = 'hist',
+                            title = "\n".join(wrap(plot_title, 60)),
+                            figure=plt.figure())
         plt.figure()
         stats.probplot(diff, plot=plt)
-        plt.title('Residuals: ' + desc)
+        plt.title("\n".join(wrap(plot_title, 60)))
         resqq = plt.gca()
         statistics['t-stat_abschg'], \
             statistics['t-pval_abschg'] = stats.ttest_ind(df['T1'], df['T2'])
@@ -136,12 +150,14 @@ def get_plot(query, conn, desc, first, last):
     plot = figure(
         x_range=(2725000,2815000),
         y_range=(8455000,8457000),
+        # x_range=(2725000,2815000),
+        # y_range=(8355000,8457000),
         x_axis_type="mercator",
         y_axis_type="mercator",
         height=450,
         width=600,
         title = desc + ', ' + first + '–' + last)
-    plot.add_tile(tiles)
+    plot.add_tile(tiles, level='underlay')
     
     # Create the colour mapper
     colourmapper = LinearColorMapper(
@@ -153,12 +169,28 @@ def get_plot(query, conn, desc, first, last):
     
     # Create a map source from the DB results table and plot it
     mapsource = GeoJSONDataSource(geojson=df.to_json())
-    # print(mapsource.geojson)
-    # sys.exit()
-    plot.patches('xs', 'ys',
-                 fill_color={'field': 'Class', 'transform': colourmapper},
-                 line_color='gray', source=mapsource, line_width=1)
+    plot.patches('xs',
+                 'ys',
+                  fill_color={'field': 'Class', 'transform': colourmapper},
+                  line_color='gray',
+                  source=mapsource,
+                  line_width=1,
+                  level='underlay')
     
+    # Plot labels from centroids
+    labsource = GeoJSONDataSource(geojson=df_centroids.to_json())
+    # DEBUG: mark centroids on maps
+    # plot.circle('x', 'y', source=labsource, color='red', size=10, level='underlay')
+    labels = LabelSet(x='x',
+                      y='y',
+                      text='RFChange',
+                      text_font_size='8pt',
+                      x_offset=-4,
+                      y_offset=-7,
+                      source=labsource,
+                      level='glyph')
+    plot.add_layout(labels)
+
     # Create a legend. Of course it does NOT work automatically, see
     # https://github.com/bokeh/bokeh/issues/9398, but MUST still be defined
     # by data. :(
@@ -187,7 +219,8 @@ def get_plot(query, conn, desc, first, last):
                           ('Mean time ' + first,'@T1'),
                           ('Mean time ' + last,'@T2'),
                           ('Mean time change', '@AbsChange'),
-                          ('Change, %-point of the industry total', '@RFChange')]
+                          ('Change, %-point of the industry total',
+                           '@RFChange')]
 
     plot.add_tools(hoverinfo)
     
@@ -229,6 +262,7 @@ plot_stats_ind = list()
 
 reshists = dict()
 resqqs = dict()
+docs_path = path.join(path.dirname(path.realpath(__file__)), 'docs')
 
 for modeid, mode in modes.items():
     plots = list()
@@ -239,6 +273,17 @@ for modeid, mode in modes.items():
                 'CASE WHEN '
                 'r.nimi<>\'\' THEN r.nimi ELSE \'Kauniainen\' END AS nimi, '
                 'r.geom, '
+                'rf1."RegID", '
+                'CASE WHEN rf1."RegID" '
+                'NOT IN (\'0911102000\', \'0916603000\') THEN '
+                    'ST_PointOnSurface(r.geom) '
+                'ELSE '
+                    'CASE WHEN rf1."RegID" = \'0911102000\' THEN '
+                        'ST_Translate(ST_PointOnSurface(r.geom), 0, 4000) '
+                    'ELSE '
+                        'ST_Translate(ST_PointOnSurface(r.geom), 0, 8000) '
+                    'END '
+                'END  AS geom_centroid, '
                 'rf1."MunID", '
                 'rf1."AreaID", '
                 'rf1."DistID", '
@@ -280,8 +325,9 @@ for modeid, mode in modes.items():
                     mode + ': Change of the share of the total time: ' + desc,
                     item, series[i+1])
                 plots.append(plot[0])
-                reshists[mode + '_' + field] = plot[2]
-                resqqs[mode + '_' + field] = plot[3]
+                period = str(item) + '–' + str(series[i+1])
+                reshists[mode + '_' + field + '_' + period] = plot[2]
+                resqqs[mode + '_' + field + '_' + period] = plot[3]
                 statsdic = {'mode': mode,
                             'indcode': field,
                             'ind_desc': desc,
@@ -290,27 +336,27 @@ for modeid, mode in modes.items():
                 plot_stats_ind.append(statsdic)
 
     # Save the map.
-    outfp = path.join(path.dirname(path.realpath(__file__)),
-                      'docs/icfreq_reg_maps_' + modeid + '.html')
+    outfp = path.join(docs_path, 'icfreq_reg_maps_' + modeid + '.html')
     save(gridplot(plots, ncols=2), outfp, title='IC frequency plots, ' + mode)
+    #         break #DEBUG: to save but one map, intend the above two lines
+    #     break     #       to the level of the innermost of these three and
+    # break         #       uncomment these three.
 
 # Save residual plots
-dirpath = path.join(tempfile.gettempdir(), 'histplots')
+dirpath = path.join(docs_path, 'plots_hist')
 if not path.exists(dirpath):
     mkdir(dirpath)
 for key, plot in reshists.items():
     outfp = path.join(dirpath, key + '_residuals.png')
     if(plot):
         plot.get_figure().savefig(outfp)
-print('Residual histograms saved to directory "' + dirpath + '".')
-dirpath = path.join(tempfile.gettempdir(), 'qqplots')
+dirpath = path.join(docs_path, 'plots_qq')
 if not path.exists(dirpath):
     mkdir(dirpath)
 for key, plot in resqqs.items():
     outfp = path.join(dirpath, key + '_residuals.png')
     if(plot):
         plot.get_figure().savefig(outfp)
-print('Residual QQ-plots saved to directory "' + dirpath + '".')
 
 # Write all statistics to an xlsx file.
 # The file will be located in a temporary directory, which on some platforms
@@ -320,7 +366,6 @@ for k in plot_stats_ind[0].keys():
     plot_stats_dict[k] = tuple(
         plot_stats_dict[k] for plot_stats_dict in plot_stats_ind)
 plot_stats = pandas.DataFrame(plot_stats_dict)
-statsfp = path.join(tempfile.gettempdir(),
-                  'ic_maps_stats.xlsx')
+statsfp = path.join(docs_path, 'ic_maps_stats.xlsx')
 plot_stats.to_excel(statsfp)
-print('Statistics written to file "' + statsfp + '".')
+print('Output files written under "' + docs_path + '".')
