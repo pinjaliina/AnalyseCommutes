@@ -347,14 +347,14 @@ dirpath = path.join(docs_path, 'plots_hist')
 if not path.exists(dirpath):
     mkdir(dirpath)
 for key, plot in reshists.items():
-    outfp = path.join(dirpath, key + '_residuals.png')
+    outfp = path.join(dirpath, key.replace('–','-') + '_residuals.png')
     if(plot):
         plot.get_figure().savefig(outfp)
 dirpath = path.join(docs_path, 'plots_qq')
 if not path.exists(dirpath):
     mkdir(dirpath)
 for key, plot in resqqs.items():
-    outfp = path.join(dirpath, key + '_residuals.png')
+    outfp = path.join(dirpath, key.replace('–','-') + '_residuals.png')
     if(plot):
         plot.get_figure().savefig(outfp)
 
