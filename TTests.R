@@ -108,7 +108,11 @@ desc_pt_chg_all_20152018_T1 <- c(summary(pt_chg_all_20152018$T1), sd(pt_chg_all_
 names(desc_pt_chg_all_20152018_T1)[7] <- "St. Dev."
 desc_pt_chg_all_20152018_T2 <- c(summary(pt_chg_all_20152018$T2), sd(pt_chg_all_20152018$T2))
 names(desc_pt_chg_all_20152018_T2)[7] <- "St. Dev."
+tt_pt_chg_all_20132015_levene <- col_brownforsythe(melt(pt_chg_all_20132015[,11:12])$value, melt(pt_chg_all_20132015[,11:12])$variable)
+tt_pt_chg_all_20132015_shapiro <- shapiro.test(pt_chg_all_20132015$T2-pt_chg_all_20132015$T1)
 tt_pt_chg_all_20132015 <- t.test(pt_chg_all_20132015$T1, pt_chg_all_20132015$T2, var.equal = TRUE)
+tt_pt_chg_all_20152018_levene <- col_brownforsythe(melt(pt_chg_all_20152018[,11:12])$value, melt(pt_chg_all_20152018[,11:12])$variable)
+tt_pt_chg_all_20152018_shapiro <- shapiro.test(pt_chg_all_20152018$T2-pt_chg_all_20152018$T1)
 tt_pt_chg_all_20152018 <- t.test(pt_chg_all_20152018$T1, pt_chg_all_20152018$T2, var.equal = TRUE)
 desc_car_chg_all_20132015_T1 <- c(summary(car_chg_all_20132015$T1), sd(car_chg_all_20132015$T1))
 names(desc_car_chg_all_20132015_T1)[7] <- "St. Dev."
@@ -118,7 +122,11 @@ desc_car_chg_all_20152018_T1 <- c(summary(car_chg_all_20152018$T1), sd(car_chg_a
 names(desc_car_chg_all_20152018_T1)[7] <- "St. Dev."
 desc_car_chg_all_20152018_T2 <- c(summary(car_chg_all_20152018$T2), sd(car_chg_all_20152018$T2))
 names(desc_car_chg_all_20152018_T2)[7] <- "St. Dev."
+tt_car_chg_all_20132015_levene <- col_brownforsythe(melt(car_chg_all_20132015[,11:12])$value, melt(car_chg_all_20132015[,11:12])$variable)
+tt_car_chg_all_20132015_shapiro <- shapiro.test(car_chg_all_20132015$T2-car_chg_all_20132015$T1)
 tt_car_chg_all_20132015 <- t.test(car_chg_all_20132015$T1, car_chg_all_20132015$T2, var.equal = TRUE)
+tt_car_chg_all_20152018_levene <- col_brownforsythe(melt(car_chg_all_20152018[,11:12])$value, melt(car_chg_all_20152018[,11:12])$variable)
+tt_car_chg_all_20152018_shapiro <- shapiro.test(car_chg_all_20152018$T2-car_chg_all_20152018$T1)
 tt_car_chg_all_20152018 <- t.test(car_chg_all_20152018$T1, car_chg_all_20152018$T2, var.equal = TRUE)
 
 # For comparison, fit linear models to check if changes in
@@ -138,7 +146,11 @@ desc_comp_comp_PT_1_W <- c(summary(comp_comp_PT$W_TChange_1), sd(comp_comp_PT$W_
 names(desc_comp_comp_PT_1_W)[7] <- "St. Dev."
 desc_comp_comp_PT_2_W <- c(summary(comp_comp_PT$W_TChange_2), sd(comp_comp_PT$W_TChange_2))
 names(desc_comp_comp_PT_2_W)[7] <- "St. Dev."
+tt_comp_comp_PT_levene <- col_brownforsythe(melt(comp_comp_PT[,c('TChange_1','TChange_2')])$value, melt(comp_comp_PT[,c('TChange_1','TChange_2')])$variable)
+tt_comp_comp_PT_shapiro <- shapiro.test(comp_comp_PT$TChange_2-comp_comp_PT$TChange_1)
 tt_comp_comp_PT <- t.test(comp_comp_PT$TChange_1, comp_comp_PT$TChange_2, var.equal = TRUE)
+tt_comp_comp_PT_W_levene <- col_brownforsythe(melt(comp_comp_PT[,c('W_TChange_1','W_TChange_2')])$value, melt(comp_comp_PT[,c('W_TChange_1','W_TChange_2')])$variable)
+tt_comp_comp_PT_W_shapiro <- shapiro.test(comp_comp_PT$W_TChange_2-comp_comp_PT$W_TChange_1)
 tt_comp_comp_PT_W <- t.test(comp_comp_PT$W_TChange_1, comp_comp_PT$W_TChange_2, var.equal = TRUE)
 desc_comp_comp_Car_1 <- c(summary(comp_comp_Car$TChange_1), sd(comp_comp_Car$TChange_1))
 names(desc_comp_comp_Car_1)[7] <- "St. Dev."
@@ -148,7 +160,11 @@ desc_comp_comp_Car_1_W <- c(summary(comp_comp_Car$W_TChange_1), sd(comp_comp_Car
 names(desc_comp_comp_Car_1_W)[7] <- "St. Dev."
 desc_comp_comp_Car_2_W <- c(summary(comp_comp_Car$W_TChange_2), sd(comp_comp_Car$W_TChange_2))
 names(desc_comp_comp_Car_2_W)[7] <- "St. Dev."
+tt_comp_comp_Car_levene <- col_brownforsythe(melt(comp_comp_Car[,c('TChange_1','TChange_2')])$value, melt(comp_comp_Car[,c('TChange_1','TChange_2')])$variable)
+tt_comp_comp_Car_shapiro <- shapiro.test(comp_comp_Car$TChange_2-comp_comp_Car$TChange_1)
 tt_comp_comp_Car <- t.test(comp_comp_Car$TChange_1, comp_comp_Car$TChange_2, var.equal = TRUE)
+tt_comp_comp_Car_W_levene <- col_brownforsythe(melt(comp_comp_Car[,c('W_TChange_1','W_TChange_2')])$value, melt(comp_comp_Car[,c('W_TChange_1','W_TChange_2')])$variable)
+tt_comp_comp_Car_W_shapiro <- shapiro.test(comp_comp_Car$W_TChange_2-comp_comp_Car$W_TChange_1)
 tt_comp_comp_Car_W <- t.test(comp_comp_Car$W_TChange_1, comp_comp_Car$W_TChange_2, var.equal = TRUE)
 
 # Plot kernel densities of unweighted changes
@@ -270,9 +286,13 @@ desc_pt_chg_all_20132015_T2
 desc_pt_chg_all_20152018_T1
 "PT, 2018 (T2)"
 desc_pt_chg_all_20152018_T2
-"PT, t-test, 2013-2015"
+"PT, levene, shapiro and t-test, 2013-2015"
+tt_pt_chg_all_20132015_levene
+tt_pt_chg_all_20132015_shapiro
 tt_pt_chg_all_20132015
-"PT, t-test, 2015-2018"
+"PT, levene, shapiro and t-test, 2015-2018"
+tt_pt_chg_all_20152018_levene
+tt_pt_chg_all_20152018_shapiro
 tt_pt_chg_all_20152018
 "Car, 2013 (T1)"
 desc_car_chg_all_20132015_T1
@@ -282,9 +302,13 @@ desc_car_chg_all_20132015_T2
 desc_car_chg_all_20152018_T1
 "Car, 2018 (T2)"
 desc_car_chg_all_20152018_T2
-"Car, t-test, 2013-2015"
+"Car, levene, shapiro and t-test, 2013-2015"
+tt_car_chg_all_20132015_levene
+tt_car_chg_all_20132015_shapiro
 tt_car_chg_all_20132015
-"Car, t-test, 2015-2018"
+"Car, levene, shapiro and t-test, 2015-2018"
+tt_comp_comp_PT_W_levene
+tt_comp_comp_PT_W_shapiro
 tt_car_chg_all_20152018
 "LM Summary, PT 2013-2015"
 summary(pt_comp_20132015_lm)
@@ -298,23 +322,31 @@ summary(car_comp_20152018_lm)
 desc_comp_comp_PT_1
 "TTM Pairs, unweighted PT (2)"
 desc_comp_comp_PT_2
-"TTM Pairs, unweighted t-test for PT"
+"TTM Pairs, levene, shapriro and t-test for unweighted PT"
+tt_comp_comp_PT_levene
+tt_comp_comp_PT_shapiro
 tt_comp_comp_PT
 "TTM Pairs, weighted PT (1)"
 desc_comp_comp_PT_2_W
 "TTM Pairs, weighted PT (2)"
 desc_comp_comp_PT_2_W
-"TTM Pairs, weighted t-test for PT"
+"TTM Pairs, levene, shapriro and t-test for weighted PT"
+tt_comp_comp_PT_W_levene
+tt_comp_comp_PT_W_shapiro
 tt_comp_comp_PT_W
 "TTM Pairs, unweighted Car (1)"
 desc_comp_comp_Car_1
 "TTM Pairs, unweighted Car (2)"
 desc_comp_comp_Car_2
-"TTM Pairs, unweighted t-test for Car"
+"TTM Pairs, levene, shapriro and t-test for unweighted car"
+tt_comp_comp_Car_levene
+tt_comp_comp_Car_shapiro
 tt_comp_comp_Car
 "TTM Pairs, weighted car (1)"
 desc_comp_comp_Car_1_W
 "TTM Pairs, weighted car (2)"
 desc_comp_comp_Car_2_W
-"TTM Pairs, weighted t-test for PT"
+"TTM Pairs, levene, shapriro and t-test for weighted car"
+tt_comp_comp_Car_W_levene
+tt_comp_comp_Car_W_shapiro
 tt_comp_comp_Car_W
