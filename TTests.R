@@ -2,17 +2,14 @@
 rm(list = ls())
 
 # Define packages required by this script.
-#library(foreign)
 library(xlsx)
 library(readr)
 library(dplyr)
 library(RPostgres)
 library(gginference)
-# library(GGally)
 library(ggplot2)
-# library(randomcoloR)
-# library(directlabels)
-# library(reshape2)
+library(matrixTests)
+library(reshape2)
 
 # Reset graphical parameters and save the defaults.
 plot.new()
