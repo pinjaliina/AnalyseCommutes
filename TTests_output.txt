@@ -1,0 +1,439 @@
+> desc_pt_chg_all_20132015_T1
+     Min.   1st Qu.    Median      Mean   3rd Qu.      Max.  St. Dev.
+   166.20   9018.00  19719.55  40094.08  57176.12 233530.20  46742.92
+
+> "PT, 2015 (T2)"
+[1] "PT, 2015 (T2)"
+
+> desc_pt_chg_all_20132015_T2
+     Min.   1st Qu.    Median      Mean   3rd Qu.      Max.  St. Dev.
+   167.80   8844.65  19521.15  39223.46  54993.10 218485.90  45252.72
+
+> "PT, 2015 (T1)"
+[1] "PT, 2015 (T1)"
+
+> desc_pt_chg_all_20152018_T1
+     Min.   1st Qu.    Median      Mean   3rd Qu.      Max.  St. Dev.
+    23.50   8754.20  19397.40  38909.86  54442.60 218485.90  45206.05
+
+> "PT, 2018 (T2)"
+[1] "PT, 2018 (T2)"
+
+> desc_pt_chg_all_20152018_T2
+     Min.   1st Qu.    Median      Mean   3rd Qu.      Max.  St. Dev.
+    26.60   9773.40  20217.20  37465.31  50063.90 195690.90  41077.24
+
+> "PT, levene, shapiro and t-test, 2013-2015"
+[1] "PT, levene, shapiro and t-test, 2013-2015"
+
+> tt_pt_chg_all_20132015_levene
+  obs.tot obs.groups df.between df.within  statistic    pvalue
+1     248          2          1       246 0.02726107 0.8689936
+
+> tt_pt_chg_all_20132015_shapiro
+
+	Shapiro-Wilk normality test
+
+data:  pt_chg_all_20132015$T2 - pt_chg_all_20132015$T1
+W = 0.7612, p-value = 6.359e-13
+
+
+> tt_pt_chg_all_20132015
+
+	Two Sample t-test
+
+data:  pt_chg_all_20132015$T1 and pt_chg_all_20132015$T2
+t = 0.14902, df = 246, p-value = 0.8817
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -10637.07  12378.32
+sample estimates:
+mean of x mean of y
+ 40094.08  39223.46
+
+
+> "PT, levene, shapiro and t-test, 2015-2018"
+[1] "PT, levene, shapiro and t-test, 2015-2018"
+
+> tt_pt_chg_all_20152018_levene
+  obs.tot obs.groups df.between df.within statistic    pvalue
+1     250          2          1       248 0.2647189 0.6073548
+
+> tt_pt_chg_all_20152018_shapiro
+
+	Shapiro-Wilk normality test
+
+data:  pt_chg_all_20152018$T2 - pt_chg_all_20152018$T1
+W = 0.91097, p-value = 4.786e-07
+
+
+> tt_pt_chg_all_20152018
+
+	Two Sample t-test
+
+data:  pt_chg_all_20152018$T1 and pt_chg_all_20152018$T2
+t = 0.26441, df = 248, p-value = 0.7917
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -9315.79 12204.89
+sample estimates:
+mean of x mean of y
+ 38909.86  37465.31
+
+
+> "Car, 2013 (T1)"
+[1] "Car, 2013 (T1)"
+
+> desc_car_chg_all_20132015_T1
+      Min.    1st Qu.     Median       Mean    3rd Qu.       Max.   St. Dev.
+   157.900   9164.475  20411.550  27846.325  38176.800 116086.100  25418.199
+
+> "Car, 2015 (T2)"
+[1] "Car, 2015 (T2)"
+
+> desc_car_chg_all_20132015_T2
+      Min.    1st Qu.     Median       Mean    3rd Qu.       Max.   St. Dev.
+   153.300   8539.175  18768.850  26372.555  36609.225 109791.900  23935.916
+
+> "Car, 2015 (T1)"
+[1] "Car, 2015 (T1)"
+
+> desc_car_chg_all_20152018_T1
+     Min.   1st Qu.    Median      Mean   3rd Qu.      Max.  St. Dev.
+    17.30   7934.30  18544.90  26161.71  36550.60 109791.90  23955.47
+
+> "Car, 2018 (T2)"
+[1] "Car, 2018 (T2)"
+
+> desc_car_chg_all_20152018_T2
+     Min.   1st Qu.    Median      Mean   3rd Qu.      Max.  St. Dev.
+    19.40   8831.20  20522.80  27760.70  38245.60 130843.70  25479.15
+
+> "Car, levene, shapiro and t-test, 2013-2015"
+[1] "Car, levene, shapiro and t-test, 2013-2015"
+
+> tt_car_chg_all_20132015_levene
+  obs.tot obs.groups df.between df.within statistic    pvalue
+1     248          2          1       246 0.1383264 0.7102706
+
+> tt_car_chg_all_20132015_shapiro
+
+	Shapiro-Wilk normality test
+
+data:  car_chg_all_20132015$T2 - car_chg_all_20132015$T1
+W = 0.89126, p-value = 4.86e-08
+
+
+> tt_car_chg_all_20132015
+
+	Two Sample t-test
+
+data:  car_chg_all_20132015$T1 and car_chg_all_20132015$T2
+t = 0.47004, df = 246, p-value = 0.6387
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -4701.889  7649.429
+sample estimates:
+mean of x mean of y
+ 27846.33  26372.55
+
+
+> "Car, levene, shapiro and t-test, 2015-2018"
+[1] "Car, levene, shapiro and t-test, 2015-2018"
+
+> tt_comp_comp_PT_W_levene
+  obs.tot obs.groups df.between df.within statistic       pvalue
+1     234          2          1       232  12.16037 0.0005837862
+
+> tt_comp_comp_PT_W_shapiro
+
+	Shapiro-Wilk normality test
+
+data:  comp_comp_PT$W_TChange_2 - comp_comp_PT$W_TChange_1
+W = 0.82733, p-value = 2.189e-10
+
+
+> tt_car_chg_all_20152018
+
+	Two Sample t-test
+
+data:  car_chg_all_20152018$T1 and car_chg_all_20152018$T2
+t = -0.51118, df = 248, p-value = 0.6097
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -7759.827  4561.856
+sample estimates:
+mean of x mean of y
+ 26161.71  27760.70
+
+
+> "LM Summary, PT 2013-2015"
+[1] "LM Summary, PT 2013-2015"
+
+> summary(pt_comp_20132015_lm)
+
+Call:
+lm(formula = TChange ~ PopChange, data = pt_comp_20132015, na.action = na.omit)
+
+Residuals:
+     Min       1Q   Median       3Q      Max
+-17111.4   -827.2    756.3   1422.8   9176.9
+
+Coefficients:
+              Estimate Std. Error t value Pr(>|t|)
+(Intercept) -1435.1927   348.1199  -4.123  7.1e-05 ***
+PopChange       1.2622     0.3778   3.341  0.00113 **
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 3394 on 115 degrees of freedom
+  (7 observations deleted due to missingness)
+Multiple R-squared:  0.08848,	Adjusted R-squared:  0.08056
+F-statistic: 11.16 on 1 and 115 DF,  p-value: 0.001126
+
+
+> "LM Summary, PT 2015-2018"
+[1] "LM Summary, PT 2015-2018"
+
+> summary(pt_comp_20152018_lm)
+
+Call:
+lm(formula = TChange ~ PopChange, data = pt_comp_20152018, na.action = na.omit)
+
+Residuals:
+   Min     1Q Median     3Q    Max
+-20150  -3071   1471   3054  15023
+
+Coefficients:
+             Estimate Std. Error t value Pr(>|t|)
+(Intercept) -1159.623    512.289  -2.264   0.0254 *
+PopChange      -1.887      1.000  -1.887   0.0617 .
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 5180 on 117 degrees of freedom
+  (6 observations deleted due to missingness)
+Multiple R-squared:  0.02952,	Adjusted R-squared:  0.02123
+F-statistic: 3.559 on 1 and 117 DF,  p-value: 0.0617
+
+
+> "LM Summary, car 2013-2015"
+[1] "LM Summary, car 2013-2015"
+
+> summary(car_comp_20132015_lm)
+
+Call:
+lm(formula = TChange ~ PopChange, data = car_comp_20132015, na.action = na.omit)
+
+Residuals:
+     Min       1Q   Median       3Q      Max
+-10158.6   -862.8    616.3   1494.8   9653.0
+
+Coefficients:
+              Estimate Std. Error t value Pr(>|t|)
+(Intercept) -1821.7441   265.0811  -6.872 3.45e-10 ***
+PopChange       0.6387     0.2877   2.220   0.0284 *
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 2584 on 115 degrees of freedom
+  (7 observations deleted due to missingness)
+Multiple R-squared:  0.0411,	Adjusted R-squared:  0.03276
+F-statistic: 4.929 on 1 and 115 DF,  p-value: 0.02837
+
+
+> "LM Summary, car 2015-2018"
+[1] "LM Summary, car 2015-2018"
+
+> summary(car_comp_20152018_lm)
+
+Call:
+lm(formula = TChange ~ PopChange, data = car_comp_20152018, na.action = na.omit)
+
+Residuals:
+     Min       1Q   Median       3Q      Max
+-11515.1  -1374.0   -818.8    866.8  18336.1
+
+Coefficients:
+             Estimate Std. Error t value Pr(>|t|)
+(Intercept) 1362.6683   335.5199   4.061 8.86e-05 ***
+PopChange      1.4758     0.6553   2.252   0.0262 *
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 3393 on 117 degrees of freedom
+  (6 observations deleted due to missingness)
+Multiple R-squared:  0.04155,	Adjusted R-squared:  0.03336
+F-statistic: 5.072 on 1 and 117 DF,  p-value: 0.02618
+
+
+> "TTM Pairs, unweighted PT (1)"
+[1] "TTM Pairs, unweighted PT (1)"
+
+> desc_comp_comp_PT_1
+       Min.     1st Qu.      Median        Mean     3rd Qu.        Max.    St. Dev.
+-15044.0000  -1924.0000   -320.0000   -931.3333    335.0000  14791.0000   3539.3936
+
+> "TTM Pairs, unweighted PT (2)"
+[1] "TTM Pairs, unweighted PT (2)"
+
+> desc_comp_comp_PT_2
+      Min.    1st Qu.     Median       Mean    3rd Qu.       Max.   St. Dev.
+-22795.000  -4962.000    153.000  -1548.846   1817.000  12316.000   5277.224
+
+> "TTM Pairs, levene, shapriro and t-test for unweighted PT"
+[1] "TTM Pairs, levene, shapriro and t-test for unweighted PT"
+
+> tt_comp_comp_PT_levene
+  obs.tot obs.groups df.between df.within statistic       pvalue
+1     234          2          1       232  17.07482 5.020265e-05
+
+> tt_comp_comp_PT_shapiro
+
+	Shapiro-Wilk normality test
+
+data:  comp_comp_PT$TChange_2 - comp_comp_PT$TChange_1
+W = 0.916, p-value = 1.849e-06
+
+
+> tt_comp_comp_PT
+
+	Two Sample t-test
+
+data:  comp_comp_PT$TChange_1 and comp_comp_PT$TChange_2
+t = 1.0512, df = 232, p-value = 0.2943
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -539.9057 1774.9313
+sample estimates:
+ mean of x  mean of y
+ -931.3333 -1548.8462
+
+
+> "TTM Pairs, weighted PT (1)"
+[1] "TTM Pairs, weighted PT (1)"
+
+> desc_comp_comp_PT_2_W
+       Min.     1st Qu.      Median        Mean     3rd Qu.        Max.    St. Dev.
+-28326.8116  -4962.0000    152.8113  -1773.8888   1880.0364  15430.1289   6186.2315
+
+> "TTM Pairs, weighted PT (2)"
+[1] "TTM Pairs, weighted PT (2)"
+
+> desc_comp_comp_PT_2_W
+       Min.     1st Qu.      Median        Mean     3rd Qu.        Max.    St. Dev.
+-28326.8116  -4962.0000    152.8113  -1773.8888   1880.0364  15430.1289   6186.2315
+
+> "TTM Pairs, levene, shapriro and t-test for weighted PT"
+[1] "TTM Pairs, levene, shapriro and t-test for weighted PT"
+
+> tt_comp_comp_PT_W_levene
+  obs.tot obs.groups df.between df.within statistic       pvalue
+1     234          2          1       232  12.16037 0.0005837862
+
+> tt_comp_comp_PT_W_shapiro
+
+	Shapiro-Wilk normality test
+
+data:  comp_comp_PT$W_TChange_2 - comp_comp_PT$W_TChange_1
+W = 0.82733, p-value = 2.189e-10
+
+
+> tt_comp_comp_PT_W
+
+	Two Sample t-test
+
+data:  comp_comp_PT$W_TChange_1 and comp_comp_PT$W_TChange_2
+t = 1.2947, df = 232, p-value = 0.1967
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -479.3731 2316.7315
+sample estimates:
+ mean of x  mean of y
+ -855.2096 -1773.8888
+
+
+> "TTM Pairs, unweighted Car (1)"
+[1] "TTM Pairs, unweighted Car (1)"
+
+> desc_comp_comp_Car_1
+      Min.    1st Qu.     Median       Mean    3rd Qu.       Max.   St. Dev.
+-11113.000  -2243.000  -1032.000  -1566.795   -293.000   8749.000   2627.694
+
+> "TTM Pairs, unweighted Car (2)"
+[1] "TTM Pairs, unweighted Car (2)"
+
+> desc_comp_comp_Car_2
+     Min.   1st Qu.    Median      Mean   3rd Qu.      Max.  St. Dev.
+-8991.000   159.000   742.000  1673.795  2446.000 21052.000  3473.951
+
+> "TTM Pairs, levene, shapriro and t-test for unweighted car"
+[1] "TTM Pairs, levene, shapriro and t-test for unweighted car"
+
+> tt_comp_comp_Car_levene
+  obs.tot obs.groups df.between df.within statistic    pvalue
+1     234          2          1       232   1.33388 0.2493043
+
+> tt_comp_comp_Car_shapiro
+
+	Shapiro-Wilk normality test
+
+data:  comp_comp_Car$TChange_2 - comp_comp_Car$TChange_1
+W = 0.77058, p-value = 3.084e-12
+
+
+> tt_comp_comp_Car
+
+	Two Sample t-test
+
+data:  comp_comp_Car$TChange_1 and comp_comp_Car$TChange_2
+t = -8.0473, df = 232, p-value = 4.373e-14
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -4033.997 -2447.183
+sample estimates:
+mean of x mean of y
+-1566.795  1673.795
+
+
+> "TTM Pairs, weighted car (1)"
+[1] "TTM Pairs, weighted car (1)"
+
+> desc_comp_comp_Car_1_W
+      Min.    1st Qu.     Median       Mean    3rd Qu.       Max.   St. Dev.
+-13415.633  -2560.668  -1036.144  -1595.005   -291.033  10667.266   2959.685
+
+> "TTM Pairs, weighted car (2)"
+[1] "TTM Pairs, weighted car (2)"
+
+> desc_comp_comp_Car_2_W
+       Min.     1st Qu.      Median        Mean     3rd Qu.        Max.    St. Dev.
+-11172.9047    156.3034    814.9874   1877.2157   2596.3978  27004.7240   4166.6826
+
+> "TTM Pairs, levene, shapriro and t-test for weighted car"
+[1] "TTM Pairs, levene, shapriro and t-test for weighted car"
+
+> tt_comp_comp_Car_W_levene
+  obs.tot obs.groups df.between df.within statistic    pvalue
+1     234          2          1       232  1.628871 0.2031355
+
+> tt_comp_comp_Car_W_shapiro
+
+	Shapiro-Wilk normality test
+
+data:  comp_comp_Car$W_TChange_2 - comp_comp_Car$W_TChange_1
+W = 0.72135, p-value = 1.329e-13
+
+
+> tt_comp_comp_Car_W
+
+	Two Sample t-test
+
+data:  comp_comp_Car$W_TChange_1 and comp_comp_Car$W_TChange_2
+t = -7.3486, df = 232, p-value = 3.395e-12
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -4403.160 -2541.282
+sample estimates:
+mean of x mean of y
+-1595.005  1877.216
