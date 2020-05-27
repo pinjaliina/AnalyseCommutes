@@ -83,8 +83,9 @@ names(car_chg_all_20152018)[names(car_chg_all_20132015) == "Pop2018"] <- "P2"
 # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # Get QGIS attribute data from spreadsheet files. #
 # # # # # # # # # # # # # # # # # # # # # # # # # #
-qgisdatafn <- '/Users/Shared/pCloud/HY/Maantiede/FM/MScThesisText/TabularData/all_qgis_data.xlsx'
-qgisdatacompfn <- '/Users/Shared/pCloud/HY/Maantiede/FM/MScThesisText/TabularData/all_qgis_data_comp.xlsx'
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) #Implies RStudio!
+qgisdatafn <- 'all_qgis_data.xlsx'
+qgisdatacompfn <- 'all_qgis_data_comp.xlsx'
 pt_comp_20132015 <- read.xlsx(qgisdatafn, sheetName = "PT 2013–2015")
 pt_comp_20152018 <- read.xlsx(qgisdatafn, sheetName = "PT 2015–2018")
 car_comp_20132015 <- read.xlsx(qgisdatafn, sheetName = "Car 2013–2015")
@@ -202,6 +203,23 @@ legend('topright', c(
   'PT, 2013–2015',
   'PT, 2015–2018'),
   fill = c('firebrick1','blue','darkseagreen3','gold'))
+
+# Plot residuals of the linear models
+par(mfrow=c(4,3))
+plot(pt_comp_20132015_lm, which = c(1,2))
+title(list("Linear model for PT, 2013–2015", font=1, cex=2), line=2.5)
+plot(pt_comp_20132015_lm, which = c(5))
+plot(pt_comp_20152018_lm, which = c(1,2))
+title(list("Linear model for PT, 2015–2018", font=1, cex=2), line=2.5)
+plot(pt_comp_20152018_lm, which = c(5))
+plot(car_comp_20132015_lm, which = c(1,2))
+title(list("Linear model for Car, 2013–2015", font=1, cex=2), line=2.5)
+plot(car_comp_20132015_lm, which = c(5))
+plot(car_comp_20152018_lm, which = c(1,2))
+title(list("Linear model for Car, 2015–2018", font=1, cex=2), line=2.5)
+plot(car_comp_20152018_lm, which = c(5))
+# Reset graphical params. Do not clear old plots!
+par(.pardefault)
 
 "Plot: PT, t-test, 2013-2015"
 ggttest(tt_pt_chg_all_20132015) +
