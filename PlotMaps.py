@@ -90,7 +90,7 @@ def get_plot(query, conn, desc, first, last):
         'max_abschg': df['AbsChange'].max(),
         'mean_rfchg': df['RFChange'].mean(),
         'mean_abschg': df['AbsChange'].mean(),
-        'median_abschg': df['AbsChange'].mean(),
+        'median_abschg': df['AbsChange'].median(),
         'stdev_abschg': df['AbsChange'].std(),
         'mean_T1': df['T1'].mean(),
         'mean_T2': df['T2'].mean(),
