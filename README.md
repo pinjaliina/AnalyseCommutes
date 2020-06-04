@@ -1,5 +1,5 @@
 # AnalyseCommutes
-Run analysis of CommuteAggregator data.
+Analyse CommuteAggregator data.
 
 Please note that these scripts are mere helper tools that
 do not make much sense independently:
