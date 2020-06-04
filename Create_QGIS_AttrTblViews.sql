@@ -1,5 +1,21 @@
 -- This SQL script reads some of the output tables of PrepAnalysis.R
 -- and creates combined views of them for QGIS use.
+--
+-- NOTE: the table hcr_population must exist before running this script!
+-- I have used a population dataset from Helsinki Region Infoshare at
+-- https://hri.fi/data/en_GB/dataset/paakaupunkiseudun-vaestoennuste (I used
+-- the file labeled 2012-2022), but the downloaded spreadsheet has to be
+-- cleaned and imported manually; only the rows with totals are needed, and
+-- I also renamed most columns. I used csvkit (https://csvkit.readthedocs.io/)
+-- to import the cleaned spreadsheet and then executed the following commands
+-- to further clean the table:
+--
+-- ALTER TABLE hcr_population ALTER "RegID" TYPE TEXT USING LPAD("RegID"::text, 10, '0');
+-- ALTER TABLE hcr_population ALTER "RegName" TYPE TEXT USING ("RegName"::text);
+-- ALTER TABLE hcr_population ALTER "AreaID" TYPE TEXT USING ("AreaID"::text);
+-- ALTER TABLE hcr_population ALTER "MunID" TYPE TEXT USING LPAD("MunID"::text, 3, '0');
+-- ALTER TABLE hcr_population ADD PRIMARY KEY("RegID");
+
 DROP VIEW IF EXISTS res_agg_j_all_reg_pt_changes_2013_2015;
 CREATE VIEW res_agg_j_all_reg_pt_changes_2013_2015 AS (
 	SELECT * FROM (
